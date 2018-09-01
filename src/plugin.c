@@ -21,67 +21,74 @@ Contributors:
 #include "mosquitto_broker.h"
 
 #ifdef WITH_TLS
+
 #  include <openssl/ssl.h>
+
 #endif
 
 const char *mosquitto_client_address(const struct mosquitto *client)
 {
-	return client->address;
+    return client->address;
 }
 
 
 bool mosquitto_client_clean_session(const struct mosquitto *client)
 {
-	return client->clean_session;
+    return client->clean_session;
 }
 
 
 const char *mosquitto_client_id(const struct mosquitto *client)
 {
-	return client->id;
+    return client->id;
 }
 
 
 int mosquitto_client_keepalive(const struct mosquitto *client)
 {
-	return client->keepalive;
+    return client->keepalive;
 }
 
 
 void *mosquitto_client_certificate(const struct mosquitto *client)
 {
 #ifdef WITH_TLS
-	if(client->ssl){
-		return SSL_get_peer_certificate(client->ssl);
-	}else{
-		return NULL;
-	}
+    if (client->ssl)
+    {
+        return SSL_get_peer_certificate(client->ssl);
+    }
+    else
+    {
+        return NULL;
+    }
 #else
-	return NULL;
+    return NULL;
 #endif
 }
 
 
 int mosquitto_client_protocol(const struct mosquitto *client)
 {
-	return client->protocol;
+    return client->protocol;
 }
 
 
 int mosquitto_client_sub_count(const struct mosquitto *client)
 {
-	return client->sub_count;
+    return client->sub_count;
 }
 
 
 const char *mosquitto_client_username(const struct mosquitto *context)
 {
 #ifdef WITH_BRIDGE
-	if(context->bridge){
-		return context->bridge->local_username;
-	}else
+    if (context->bridge)
+    {
+        return context->bridge->local_username;
+    }
+    else
 #endif
-	{
-		return context->username;
-	}
+    {
+        return context->username;
+    }
 }

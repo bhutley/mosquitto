@@ -19,7 +19,9 @@ Contributors:
 #include <assert.h>
 
 #ifdef WITH_BROKER
+
 #  include "mosquitto_broker_internal.h"
+
 #endif
 
 #include "mosquitto.h"
@@ -31,45 +33,47 @@ Contributors:
 
 int handle__suback(struct mosquitto *mosq)
 {
-	uint16_t mid;
-	uint8_t qos;
-	int *granted_qos;
-	int qos_count;
-	int i = 0;
-	int rc;
+    uint16_t mid;
+    uint8_t qos;
+    int *granted_qos;
+    int qos_count;
+    int i = 0;
+    int rc;
 
-	assert(mosq);
+    assert(mosq);
 #ifdef WITH_BROKER
-	log__printf(NULL, MOSQ_LOG_DEBUG, "Received SUBACK from %s", mosq->id);
+    log__printf(NULL, MOSQ_LOG_DEBUG, "Received SUBACK from %s", mosq->id);
 #else
-	log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received SUBACK", mosq->id);
+    log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received SUBACK", mosq->id);
 #endif
-	rc = packet__read_uint16(&mosq->in_packet, &mid);
-	if(rc) return rc;
+    rc = packet__read_uint16(&mosq->in_packet, &mid);
+    if (rc) return rc;
 
-	qos_count = mosq->in_packet.remaining_length - mosq->in_packet.pos;
-	granted_qos = mosquitto__malloc(qos_count*sizeof(int));
-	if(!granted_qos) return MOSQ_ERR_NOMEM;
-	while(mosq->in_packet.pos < mosq->in_packet.remaining_length){
-		rc = packet__read_byte(&mosq->in_packet, &qos);
-		if(rc){
-			mosquitto__free(granted_qos);
-			return rc;
-		}
-		granted_qos[i] = (int)qos;
-		i++;
-	}
+    qos_count = mosq->in_packet.remaining_length - mosq->in_packet.pos;
+    granted_qos = mosquitto__malloc(qos_count * sizeof(int));
+    if (!granted_qos) return MOSQ_ERR_NOMEM;
+    while (mosq->in_packet.pos < mosq->in_packet.remaining_length)
+    {
+        rc = packet__read_byte(&mosq->in_packet, &qos);
+        if (rc)
+        {
+            mosquitto__free(granted_qos);
+            return rc;
+        }
+        granted_qos[i] = (int) qos;
+        i++;
+    }
 #ifndef WITH_BROKER
-	pthread_mutex_lock(&mosq->callback_mutex);
-	if(mosq->on_subscribe){
-		mosq->in_callback = true;
-		mosq->on_subscribe(mosq, mosq->userdata, mid, qos_count, granted_qos);
-		mosq->in_callback = false;
-	}
-	pthread_mutex_unlock(&mosq->callback_mutex);
+    pthread_mutex_lock(&mosq->callback_mutex);
+    if(mosq->on_subscribe){
+        mosq->in_callback = true;
+        mosq->on_subscribe(mosq, mosq->userdata, mid, qos_count, granted_qos);
+        mosq->in_callback = false;
+    }
+    pthread_mutex_unlock(&mosq->callback_mutex);
 #endif
-	mosquitto__free(granted_qos);
+    mosquitto__free(granted_qos);
 
-	return MOSQ_ERR_SUCCESS;
+    return MOSQ_ERR_SUCCESS;
 }
 

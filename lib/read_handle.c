@@ -34,33 +34,34 @@ Contributors:
 
 int handle__packet(struct mosquitto *mosq)
 {
-	assert(mosq);
+    assert(mosq);
 
-	switch((mosq->in_packet.command)&0xF0){
-		case PINGREQ:
-			return handle__pingreq(mosq);
-		case PINGRESP:
-			return handle__pingresp(mosq);
-		case PUBACK:
-			return handle__pubackcomp(mosq, "PUBACK");
-		case PUBCOMP:
-			return handle__pubackcomp(mosq, "PUBCOMP");
-		case PUBLISH:
-			return handle__publish(mosq);
-		case PUBREC:
-			return handle__pubrec(mosq);
-		case PUBREL:
-			return handle__pubrel(NULL, mosq);
-		case CONNACK:
-			return handle__connack(mosq);
-		case SUBACK:
-			return handle__suback(mosq);
-		case UNSUBACK:
-			return handle__unsuback(mosq);
-		default:
-			/* If we don't recognise the command, return an error straight away. */
-			log__printf(mosq, MOSQ_LOG_ERR, "Error: Unrecognised command %d\n", (mosq->in_packet.command)&0xF0);
-			return MOSQ_ERR_PROTOCOL;
-	}
+    switch ((mosq->in_packet.command) & 0xF0)
+    {
+        case PINGREQ:
+            return handle__pingreq(mosq);
+        case PINGRESP:
+            return handle__pingresp(mosq);
+        case PUBACK:
+            return handle__pubackcomp(mosq, "PUBACK");
+        case PUBCOMP:
+            return handle__pubackcomp(mosq, "PUBCOMP");
+        case PUBLISH:
+            return handle__publish(mosq);
+        case PUBREC:
+            return handle__pubrec(mosq);
+        case PUBREL:
+            return handle__pubrel(NULL, mosq);
+        case CONNACK:
+            return handle__connack(mosq);
+        case SUBACK:
+            return handle__suback(mosq);
+        case UNSUBACK:
+            return handle__unsuback(mosq);
+        default:
+            /* If we don't recognise the command, return an error straight away. */
+            log__printf(mosq, MOSQ_LOG_ERR, "Error: Unrecognised command %d\n", (mosq->in_packet.command) & 0xF0);
+            return MOSQ_ERR_PROTOCOL;
+    }
 }
 

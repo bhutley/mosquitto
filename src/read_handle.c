@@ -32,42 +32,43 @@ Contributors:
 
 int handle__packet(struct mosquitto_db *db, struct mosquitto *context)
 {
-	if(!context) return MOSQ_ERR_INVAL;
+    if (!context) return MOSQ_ERR_INVAL;
 
-	switch((context->in_packet.command)&0xF0){
-		case PINGREQ:
-			return handle__pingreq(context);
-		case PINGRESP:
-			return handle__pingresp(context);
-		case PUBACK:
-			return handle__pubackcomp(db, context, "PUBACK");
-		case PUBCOMP:
-			return handle__pubackcomp(db, context, "PUBCOMP");
-		case PUBLISH:
-			return handle__publish(db, context);
-		case PUBREC:
-			return handle__pubrec(context);
-		case PUBREL:
-			return handle__pubrel(db, context);
-		case CONNECT:
-			return handle__connect(db, context);
-		case DISCONNECT:
-			return handle__disconnect(db, context);
-		case SUBSCRIBE:
-			return handle__subscribe(db, context);
-		case UNSUBSCRIBE:
-			return handle__unsubscribe(db, context);
+    switch ((context->in_packet.command) & 0xF0)
+    {
+        case PINGREQ:
+            return handle__pingreq(context);
+        case PINGRESP:
+            return handle__pingresp(context);
+        case PUBACK:
+            return handle__pubackcomp(db, context, "PUBACK");
+        case PUBCOMP:
+            return handle__pubackcomp(db, context, "PUBCOMP");
+        case PUBLISH:
+            return handle__publish(db, context);
+        case PUBREC:
+            return handle__pubrec(context);
+        case PUBREL:
+            return handle__pubrel(db, context);
+        case CONNECT:
+            return handle__connect(db, context);
+        case DISCONNECT:
+            return handle__disconnect(db, context);
+        case SUBSCRIBE:
+            return handle__subscribe(db, context);
+        case UNSUBSCRIBE:
+            return handle__unsubscribe(db, context);
 #ifdef WITH_BRIDGE
-		case CONNACK:
-			return handle__connack(db, context);
-		case SUBACK:
-			return handle__suback(context);
-		case UNSUBACK:
-			return handle__unsuback(context);
+        case CONNACK:
+            return handle__connack(db, context);
+        case SUBACK:
+            return handle__suback(context);
+        case UNSUBACK:
+            return handle__unsuback(context);
 #endif
-		default:
-			/* If we don't recognise the command, return an error straight away. */
-			return MOSQ_ERR_PROTOCOL;
-	}
+        default:
+            /* If we don't recognise the command, return an error straight away. */
+            return MOSQ_ERR_PROTOCOL;
+    }
 }
 

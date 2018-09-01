@@ -21,7 +21,9 @@ Contributors:
 #include <string.h>
 
 #ifdef WITH_BROKER
+
 #  include "mosquitto_broker_internal.h"
+
 #endif
 
 #include "mosquitto.h"
@@ -37,29 +39,33 @@ Contributors:
 
 int handle__pubrec(struct mosquitto *mosq)
 {
-	uint16_t mid;
-	int rc;
+    uint16_t mid;
+    int rc;
 
-	assert(mosq);
-	rc = packet__read_uint16(&mosq->in_packet, &mid);
-	if(rc) return rc;
+    assert(mosq);
+    rc = packet__read_uint16(&mosq->in_packet, &mid);
+    if (rc) return rc;
 #ifdef WITH_BROKER
-	log__printf(NULL, MOSQ_LOG_DEBUG, "Received PUBREC from %s (Mid: %d)", mosq->id, mid);
+    log__printf(NULL, MOSQ_LOG_DEBUG, "Received PUBREC from %s (Mid: %d)", mosq->id, mid);
 
-	rc = db__message_update(mosq, mid, mosq_md_out, mosq_ms_wait_for_pubcomp);
+    rc = db__message_update(mosq, mid, mosq_md_out, mosq_ms_wait_for_pubcomp);
 #else
-	log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received PUBREC (Mid: %d)", mosq->id, mid);
+    log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received PUBREC (Mid: %d)", mosq->id, mid);
 
-	rc = message__out_update(mosq, mid, mosq_ms_wait_for_pubcomp);
+    rc = message__out_update(mosq, mid, mosq_ms_wait_for_pubcomp);
 #endif
-	if(rc == MOSQ_ERR_NOT_FOUND){
-		log__printf(mosq, MOSQ_LOG_WARNING, "Warning: Received PUBREC from %s for an unknown packet identifier %d.", mosq->id, mid);
-	}else if(rc != MOSQ_ERR_SUCCESS){
-		return rc;
-	}
-	rc = send__pubrel(mosq, mid);
-	if(rc) return rc;
+    if (rc == MOSQ_ERR_NOT_FOUND)
+    {
+        log__printf(mosq, MOSQ_LOG_WARNING, "Warning: Received PUBREC from %s for an unknown packet identifier %d.",
+                    mosq->id, mid);
+    }
+    else if (rc != MOSQ_ERR_SUCCESS)
+    {
+        return rc;
+    }
+    rc = send__pubrel(mosq, mid);
+    if (rc) return rc;
 
-	return MOSQ_ERR_SUCCESS;
+    return MOSQ_ERR_SUCCESS;
 }
 

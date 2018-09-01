@@ -24,30 +24,35 @@ Contributors:
 
 int send__connack(struct mosquitto *context, int ack, int result)
 {
-	struct mosquitto__packet *packet = NULL;
-	int rc;
+    struct mosquitto__packet *packet = NULL;
+    int rc;
 
-	if(context){
-		if(context->id){
-			log__printf(NULL, MOSQ_LOG_DEBUG, "Sending CONNACK to %s (%d, %d)", context->id, ack, result);
-		}else{
-			log__printf(NULL, MOSQ_LOG_DEBUG, "Sending CONNACK to %s (%d, %d)", context->address, ack, result);
-		}
-	}
+    if (context)
+    {
+        if (context->id)
+        {
+            log__printf(NULL, MOSQ_LOG_DEBUG, "Sending CONNACK to %s (%d, %d)", context->id, ack, result);
+        }
+        else
+        {
+            log__printf(NULL, MOSQ_LOG_DEBUG, "Sending CONNACK to %s (%d, %d)", context->address, ack, result);
+        }
+    }
 
-	packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
-	if(!packet) return MOSQ_ERR_NOMEM;
+    packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
+    if (!packet) return MOSQ_ERR_NOMEM;
 
-	packet->command = CONNACK;
-	packet->remaining_length = 2;
-	rc = packet__alloc(packet);
-	if(rc){
-		mosquitto__free(packet);
-		return rc;
-	}
-	packet->payload[packet->pos+0] = ack;
-	packet->payload[packet->pos+1] = result;
+    packet->command = CONNACK;
+    packet->remaining_length = 2;
+    rc = packet__alloc(packet);
+    if (rc)
+    {
+        mosquitto__free(packet);
+        return rc;
+    }
+    packet->payload[packet->pos + 0] = ack;
+    packet->payload[packet->pos + 1] = result;
 
-	return packet__queue(context, packet);
+    return packet__queue(context, packet);
 }
 

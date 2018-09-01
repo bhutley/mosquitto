@@ -20,7 +20,9 @@ Contributors:
 #include <string.h>
 
 #ifdef WITH_BROKER
+
 #  include "mosquitto_broker_internal.h"
+
 #endif
 
 #include "mosquitto.h"
@@ -33,43 +35,44 @@ Contributors:
 
 int send__unsubscribe(struct mosquitto *mosq, int *mid, const char *topic)
 {
-	/* FIXME - only deals with a single topic */
-	struct mosquitto__packet *packet = NULL;
-	uint32_t packetlen;
-	uint16_t local_mid;
-	int rc;
+    /* FIXME - only deals with a single topic */
+    struct mosquitto__packet *packet = NULL;
+    uint32_t packetlen;
+    uint16_t local_mid;
+    int rc;
 
-	assert(mosq);
-	assert(topic);
+    assert(mosq);
+    assert(topic);
 
-	packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
-	if(!packet) return MOSQ_ERR_NOMEM;
+    packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
+    if (!packet) return MOSQ_ERR_NOMEM;
 
-	packetlen = 2 + 2+strlen(topic);
+    packetlen = 2 + 2 + strlen(topic);
 
-	packet->command = UNSUBSCRIBE | (1<<1);
-	packet->remaining_length = packetlen;
-	rc = packet__alloc(packet);
-	if(rc){
-		mosquitto__free(packet);
-		return rc;
-	}
+    packet->command = UNSUBSCRIBE | (1 << 1);
+    packet->remaining_length = packetlen;
+    rc = packet__alloc(packet);
+    if (rc)
+    {
+        mosquitto__free(packet);
+        return rc;
+    }
 
-	/* Variable header */
-	local_mid = mosquitto__mid_generate(mosq);
-	if(mid) *mid = (int)local_mid;
-	packet__write_uint16(packet, local_mid);
+    /* Variable header */
+    local_mid = mosquitto__mid_generate(mosq);
+    if (mid) *mid = (int) local_mid;
+    packet__write_uint16(packet, local_mid);
 
-	/* Payload */
-	packet__write_string(packet, topic, strlen(topic));
+    /* Payload */
+    packet__write_string(packet, topic, strlen(topic));
 
 #ifdef WITH_BROKER
 # ifdef WITH_BRIDGE
-	log__printf(mosq, MOSQ_LOG_DEBUG, "Bridge %s sending UNSUBSCRIBE (Mid: %d, Topic: %s)", mosq->id, local_mid, topic);
+    log__printf(mosq, MOSQ_LOG_DEBUG, "Bridge %s sending UNSUBSCRIBE (Mid: %d, Topic: %s)", mosq->id, local_mid, topic);
 # endif
 #else
-	log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s sending UNSUBSCRIBE (Mid: %d, Topic: %s)", mosq->id, local_mid, topic);
+    log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s sending UNSUBSCRIBE (Mid: %d, Topic: %s)", mosq->id, local_mid, topic);
 #endif
-	return packet__queue(mosq, packet);
+    return packet__queue(mosq, packet);
 }
 

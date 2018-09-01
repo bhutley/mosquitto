@@ -21,7 +21,9 @@ Contributors:
 #include <string.h>
 
 #ifdef WITH_BROKER
+
 #  include "mosquitto_broker_internal.h"
+
 #endif
 
 #include "mosquitto.h"
@@ -38,47 +40,51 @@ Contributors:
 
 int handle__pubrel(struct mosquitto_db *db, struct mosquitto *mosq)
 {
-	uint16_t mid;
+    uint16_t mid;
 #ifndef WITH_BROKER
-	struct mosquitto_message_all *message = NULL;
+    struct mosquitto_message_all *message = NULL;
 #endif
-	int rc;
+    int rc;
 
-	assert(mosq);
-	if(mosq->protocol == mosq_p_mqtt311){
-		if((mosq->in_packet.command&0x0F) != 0x02){
-			return MOSQ_ERR_PROTOCOL;
-		}
-	}
-	rc = packet__read_uint16(&mosq->in_packet, &mid);
-	if(rc) return rc;
+    assert(mosq);
+    if (mosq->protocol == mosq_p_mqtt311)
+    {
+        if ((mosq->in_packet.command & 0x0F) != 0x02)
+        {
+            return MOSQ_ERR_PROTOCOL;
+        }
+    }
+    rc = packet__read_uint16(&mosq->in_packet, &mid);
+    if (rc) return rc;
 #ifdef WITH_BROKER
-	log__printf(NULL, MOSQ_LOG_DEBUG, "Received PUBREL from %s (Mid: %d)", mosq->id, mid);
+    log__printf(NULL, MOSQ_LOG_DEBUG, "Received PUBREL from %s (Mid: %d)", mosq->id, mid);
 
-	if(db__message_release(db, mosq, mid, mosq_md_in)){
-		/* Message not found. Still send a PUBCOMP anyway because this could be
-		 * due to a repeated PUBREL after a client has reconnected. */
-		log__printf(mosq, MOSQ_LOG_WARNING, "Warning: Received PUBREL from %s for an unknown packet identifier %d.", mosq->id, mid);
-	}
+    if (db__message_release(db, mosq, mid, mosq_md_in))
+    {
+        /* Message not found. Still send a PUBCOMP anyway because this could be
+         * due to a repeated PUBREL after a client has reconnected. */
+        log__printf(mosq, MOSQ_LOG_WARNING, "Warning: Received PUBREL from %s for an unknown packet identifier %d.",
+                    mosq->id, mid);
+    }
 #else
-	log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received PUBREL (Mid: %d)", mosq->id, mid);
+    log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received PUBREL (Mid: %d)", mosq->id, mid);
 
-	if(!message__remove(mosq, mid, mosq_md_in, &message)){
-		/* Only pass the message on if we have removed it from the queue - this
-		 * prevents multiple callbacks for the same message. */
-		pthread_mutex_lock(&mosq->callback_mutex);
-		if(mosq->on_message){
-			mosq->in_callback = true;
-			mosq->on_message(mosq, mosq->userdata, &message->msg);
-			mosq->in_callback = false;
-		}
-		pthread_mutex_unlock(&mosq->callback_mutex);
-		message__cleanup(&message);
-	}
+    if(!message__remove(mosq, mid, mosq_md_in, &message)){
+        /* Only pass the message on if we have removed it from the queue - this
+         * prevents multiple callbacks for the same message. */
+        pthread_mutex_lock(&mosq->callback_mutex);
+        if(mosq->on_message){
+            mosq->in_callback = true;
+            mosq->on_message(mosq, mosq->userdata, &message->msg);
+            mosq->in_callback = false;
+        }
+        pthread_mutex_unlock(&mosq->callback_mutex);
+        message__cleanup(&message);
+    }
 #endif
-	rc = send__pubcomp(mosq, mid);
-	if(rc) return rc;
+    rc = send__pubcomp(mosq, mid);
+    if (rc) return rc;
 
-	return MOSQ_ERR_SUCCESS;
+    return MOSQ_ERR_SUCCESS;
 }
 

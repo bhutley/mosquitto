@@ -25,25 +25,27 @@ Contributors:
 
 int send__suback(struct mosquitto *context, uint16_t mid, uint32_t payloadlen, const void *payload)
 {
-	struct mosquitto__packet *packet = NULL;
-	int rc;
+    struct mosquitto__packet *packet = NULL;
+    int rc;
 
-	log__printf(NULL, MOSQ_LOG_DEBUG, "Sending SUBACK to %s", context->id);
+    log__printf(NULL, MOSQ_LOG_DEBUG, "Sending SUBACK to %s", context->id);
 
-	packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
-	if(!packet) return MOSQ_ERR_NOMEM;
+    packet = mosquitto__calloc(1, sizeof(struct mosquitto__packet));
+    if (!packet) return MOSQ_ERR_NOMEM;
 
-	packet->command = SUBACK;
-	packet->remaining_length = 2+payloadlen;
-	rc = packet__alloc(packet);
-	if(rc){
-		mosquitto__free(packet);
-		return rc;
-	}
-	packet__write_uint16(packet, mid);
-	if(payloadlen){
-		packet__write_bytes(packet, payload, payloadlen);
-	}
+    packet->command = SUBACK;
+    packet->remaining_length = 2 + payloadlen;
+    rc = packet__alloc(packet);
+    if (rc)
+    {
+        mosquitto__free(packet);
+        return rc;
+    }
+    packet__write_uint16(packet, mid);
+    if (payloadlen)
+    {
+        packet__write_bytes(packet, payload, payloadlen);
+    }
 
-	return packet__queue(context, packet);
+    return packet__queue(context, packet);
 }

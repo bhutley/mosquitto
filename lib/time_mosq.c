@@ -17,16 +17,21 @@ Contributors:
 #include "config.h"
 
 #ifdef __APPLE__
+
 #include <mach/mach.h>
 #include <mach/mach_time.h>
+
 #endif
 
 #ifdef WIN32
 #  define _WIN32_WINNT _WIN32_WINNT_VISTA
 #  include <windows.h>
 #else
+
 #  include <unistd.h>
+
 #endif
+
 #include <time.h>
 
 #include "mosquitto.h"
@@ -35,27 +40,28 @@ Contributors:
 time_t mosquitto_time(void)
 {
 #ifdef WIN32
-	return GetTickCount64()/1000;
-#elif _POSIX_TIMERS>0 && defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec tp;
+    return GetTickCount64()/1000;
+#elif _POSIX_TIMERS > 0 && defined(_POSIX_MONOTONIC_CLOCK)
+    struct timespec tp;
 
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	return tp.tv_sec;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    return tp.tv_sec;
 #elif defined(__APPLE__)
-	static mach_timebase_info_data_t tb;
+    static mach_timebase_info_data_t tb;
     uint64_t ticks;
-	uint64_t sec;
+    uint64_t sec;
 
-	ticks = mach_absolute_time();
+    ticks = mach_absolute_time();
 
-	if(tb.denom == 0){
-		mach_timebase_info(&tb);
-	}
-	sec = ticks*tb.numer/tb.denom/1000000000;
+    if (tb.denom == 0)
+    {
+        mach_timebase_info(&tb);
+    }
+    sec = ticks * tb.numer / tb.denom / 1000000000;
 
-	return (time_t)sec;
+    return (time_t) sec;
 #else
-	return time(NULL);
+    return time(NULL);
 #endif
 }
 
